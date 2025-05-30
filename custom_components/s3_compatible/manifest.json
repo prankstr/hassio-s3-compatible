@@ -8,10 +8,12 @@
   "documentation": "https://github.com/prankstr/hassio-s3-compatible",
   "integration_type": "service",
   "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/prankstr/hassio-s3-compatible/issues",
   "loggers": [
     "aiobotocore"
   ],
   "requirements": [
     "aiobotocore==2.21.1"
-  ]
+  ],
+  "version": "0.1.0"
 }
