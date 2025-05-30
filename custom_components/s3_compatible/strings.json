@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "access_key_id": "Access key ID",
+          "secret_access_key": "Secret access key",
+          "bucket": "Bucket name",
+          "endpoint_url": "Endpoint URL"
+        },
+        "data_description": {
+          "access_key_id": "Access key ID to connect to S3 Compatible API",
+          "secret_access_key": "Secret access key to connect to S3 Compatible API",
+          "bucket": "Bucket must already exist and be writable by the provided credentials.",
+          "endpoint_url": "Endpoint URL provided to S3 compatible API."
+        },
+        "title": "Add S3 Compatible bucket"
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the S3 endpoint. Please check the URL and your network connectivity.",
+      "invalid_bucket_name": "The specified bucket name is invalid or does not exist.",
+      "invalid_credentials": "Invalid credentials or insufficient permissions. Please check your access key, secret key, and ensure the credentials have access to the specified bucket.",
+      "invalid_endpoint_url": "Invalid endpoint URL. Please ensure it's a complete and valid URL for your S3 compatible service (e.g., https://s3.example.com).",
+      "unknown_error": "An unexpected error occurred while trying to set up the S3 compatible storage."
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  }
+}
