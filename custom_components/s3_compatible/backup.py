@@ -177,7 +177,11 @@ class S3BackupAgent(BackupAgent):
         tar_filename: str,
         open_stream: Callable[[], Coroutine[Any, Any, AsyncIterator[bytes]]],
     ):
-        """Upload a large file using multipart upload."""
+        """Upload a large file using multipart upload.
+
+        :param tar_filename: The target filename for the backup.
+        :param open_stream: A function returning an async iterator that yields bytes.
+        """
 
         _LOGGER.debug("Starting multipart upload for %s", tar_filename)
         multipart_upload = await self._client.create_multipart_upload(
@@ -194,6 +198,9 @@ class S3BackupAgent(BackupAgent):
                 buffer.extend(chunk)
                 while len(buffer) >= MULTIPART_MIN_PART_SIZE_BYTES:
                     part_data = buffer[:MULTIPART_MIN_PART_SIZE_BYTES]
+                    _LOGGER.debug(
+                        "Uploading part number %d, size %d", part_number, buffer_size
+                    )
                     part = await self._client.upload_part(
                         Bucket=self._bucket,
                         Key=tar_filename,
@@ -204,8 +211,12 @@ class S3BackupAgent(BackupAgent):
                     parts.append({"PartNumber": part_number, "ETag": part["ETag"]})
                     part_number += 1
                     buffer = buffer[MULTIPART_MIN_PART_SIZE_BYTES:]
+
             # Upload the final buffer as the last part (can be smaller than min size)
             if buffer:
+                _LOGGER.debug(
+                    "Uploading final part number %d, size %d", part_number, buffer_size
+                )
                 part = await self._client.upload_part(
                     Bucket=self._bucket,
                     Key=tar_filename,
