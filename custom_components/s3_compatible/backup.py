@@ -182,6 +182,7 @@ class S3BackupAgent(BackupAgent):
         :param tar_filename: The target filename for the backup.
         :param open_stream: A function returning an async iterator that yields bytes.
         """
+
         _LOGGER.debug("Starting multipart upload for %s", tar_filename)
         multipart_upload = await self._client.create_multipart_upload(
             Bucket=self._bucket,
@@ -191,42 +192,37 @@ class S3BackupAgent(BackupAgent):
         try:
             parts = []
             part_number = 1
-            buffer_size = 0  # bytes
-            buffer: list[bytes] = []
-
+            buffer = bytearray()
             stream = await open_stream()
             async for chunk in stream:
-                buffer_size += len(chunk)
-                buffer.append(chunk)
-
-                # If buffer size meets minimum part size, upload it as a part
-                if buffer_size >= MULTIPART_MIN_PART_SIZE_BYTES:
+                buffer.extend(chunk)
+                while len(buffer) >= MULTIPART_MIN_PART_SIZE_BYTES:
+                    part_data = buffer[:MULTIPART_MIN_PART_SIZE_BYTES]
                     _LOGGER.debug(
-                        "Uploading part number %d, size %d", part_number, buffer_size
+                        "Uploading part number %d, size %d", part_number, len(chunk)
                     )
                     part = await self._client.upload_part(
                         Bucket=self._bucket,
                         Key=tar_filename,
                         PartNumber=part_number,
                         UploadId=upload_id,
-                        Body=b"".join(buffer),
+                        Body=bytes(part_data),
                     )
                     parts.append({"PartNumber": part_number, "ETag": part["ETag"]})
                     part_number += 1
-                    buffer_size = 0
-                    buffer = []
+                    buffer = buffer[MULTIPART_MIN_PART_SIZE_BYTES:]
 
-            # Upload the final buffer as the last part (no minimum size requirement)
+            # Upload the final buffer as the last part (can be smaller than min size)
             if buffer:
                 _LOGGER.debug(
-                    "Uploading final part number %d, size %d", part_number, buffer_size
+                    "Uploading final part number %d, size %d", part_number, len(chunk)
                 )
                 part = await self._client.upload_part(
                     Bucket=self._bucket,
                     Key=tar_filename,
                     PartNumber=part_number,
                     UploadId=upload_id,
-                    Body=b"".join(buffer),
+                    Body=bytes(buffer),
                 )
                 parts.append({"PartNumber": part_number, "ETag": part["ETag"]})
 
