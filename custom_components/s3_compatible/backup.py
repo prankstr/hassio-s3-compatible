@@ -199,7 +199,7 @@ class S3BackupAgent(BackupAgent):
                 while len(buffer) >= MULTIPART_MIN_PART_SIZE_BYTES:
                     part_data = buffer[:MULTIPART_MIN_PART_SIZE_BYTES]
                     _LOGGER.debug(
-                        "Uploading part number %d, size %d", part_number, buffer_size
+                        "Uploading part number %d, size %d", part_number, len(chunk)
                     )
                     part = await self._client.upload_part(
                         Bucket=self._bucket,
@@ -215,7 +215,7 @@ class S3BackupAgent(BackupAgent):
             # Upload the final buffer as the last part (can be smaller than min size)
             if buffer:
                 _LOGGER.debug(
-                    "Uploading final part number %d, size %d", part_number, buffer_size
+                    "Uploading final part number %d, size %d", part_number, len(chunk)
                 )
                 part = await self._client.upload_part(
                     Bucket=self._bucket,
